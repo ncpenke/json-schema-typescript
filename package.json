@@ -1,0 +1,31 @@
+{
+  "name": "json-schema-typescript",
+  "version": "1.0.0",
+  "description": "Generate typescript interfaces and deserializer logic from a JSON schema",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "mocha -r ts-node/register --recursive 'src/**/Test*.ts'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ncpenke/json-schema-typescript.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ncpenke/json-schema-typescript/issues"
+  },
+  "homepage": "https://github.com/ncpenke/json-schema-typescript#readme",
+  "devDependencies": {
+    "@types/chai": "^4.2.22",
+    "@types/mocha": "^9.0.0",
+    "@types/yargs": "^17.0.6",
+    "chai": "^4.3.4",
+    "mocha": "^9.1.3",
+    "ts-node": "^10.4.0"
+  },
+  "dependencies": {
+    "yargs": "^17.2.1"
+  }
+}
