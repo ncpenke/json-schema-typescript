@@ -13,7 +13,6 @@ export interface TypescriptType
     object_properties?: TypeScriptObjectPropertyMap;
 }
 
-export interface TypescriptNamedType extends TypescriptType
-{
-    name: string;
-}
+export type TypescriptNamedTypeMap = {
+    [name:string]: TypescriptType
+};

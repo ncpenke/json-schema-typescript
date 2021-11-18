@@ -1,4 +1,4 @@
-import { TypeScriptObjectPropertyMap, TypescriptType } from "./TypescriptDefinitions";
+import { TypescriptNamedTypeMap, TypeScriptObjectPropertyMap, TypescriptType } from "./TypescriptDefinitions";
 
 export interface JsonSchemaDefinition
 {
@@ -46,6 +46,18 @@ export class JsonSchema
     public resolveRef(ref: string): JsonSchemaDefinition  
     {
         return this._schema.$defs[this.resolvedRefName(ref)];
+    }
+
+    public namedTypescriptTypes(rootTypeName: string): TypescriptNamedTypeMap
+    {
+        let ret: TypescriptNamedTypeMap = {}
+        if ("$defs" in this._schema) {
+            for (let name in this._schema.$defs) {
+                ret[name] = this.toTypescriptType(this._schema.$defs[name]);
+            }
+        }
+        ret[rootTypeName] = this.toTypescriptType(this._schema);
+        return ret;
     }
 
     public toTypescriptType(element: JsonSchemaDefinition): TypescriptType
