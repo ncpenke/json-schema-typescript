@@ -34,8 +34,17 @@ let args = yargs.scriptName("json-schema-typescript")
                 fs.mkdirSync(outDir);
             }
 
-            fs.writeFileSync(`${args["output-dir"]}/${schemaName}Json.ts`, JSON.stringify(namedTypes, null, "    "));
-            fs.writeFileSync(`${args["output-dir"]}/${schemaName}Types.ts`, generator.generateTypes(namedTypes));
+            let generatedTypes =  generator.generateTypes(namedTypes);
+            let typeMap = JSON.stringify(namedTypes, null, "    ");
+
+            fs.writeFileSync(
+                `${args["output-dir"]}/${schemaName}.ts`,
+                `
+import * as jst from 'json-schema-typescript';
+${generatedTypes}
+
+export const ${schemaName}TypeMap:jst.TypescriptNamedTypeMap = ${typeMap}
+`);
         }
     })
     .help()
