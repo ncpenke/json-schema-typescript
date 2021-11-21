@@ -14,15 +14,25 @@ export class TypescriptGenerator
 
         for(let name in types) {
             let def = types[name];
-            if ("enum_values" in def) {
+            if ("array" in def && def.array) {
+                ret.push(this.generateNamedArray(def, name));
+            }
+            else if ("enum_values" in def) {
                 ret.push(this.generateNamedEnum(def.enum_values, name))
             }
             else if ("object_properties" in def) {
                 ret.push(this.generateNamedInterface(def.object_properties, name));
             }
+            else {
+                throw `Unimplemented type ${name}`;
+            }
         }
 
         return ret.join("");
+    }
+
+    private generateNamedArray(type: TypescriptType, name: string): string {
+        return `export type ${name} = ${this.generateInlineType(type, "")};\n`;
     }
 
     private generateInlineType(type: TypescriptType, indent:string): string 
@@ -70,7 +80,12 @@ export class TypescriptGenerator
             if ("required" in propDef || propDef.required) {
                 optional = "";
             }
-            ret += `${indent}${propName}${optional}: ${this.generateInlineType(propDef.type, indent)};\n`
+            try {
+                ret += `${indent}${propName}${optional}: ${this.generateInlineType(propDef.type, indent)};\n`
+            }
+            catch(e) {
+                throw `Error processing ${propName} ${e};`
+            }
         }
         return ret;
     }

@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import { JsonSchema, JsonSchemaRootDefinition } from "../JsonSchema"
 import { TypescriptNamedTypeMap, TypescriptType } from "../TypescriptDefinitions";
 import { TypescriptGenerator } from "../TypescriptGenerator";
 
@@ -55,6 +54,10 @@ describe("Typescript Generator Tests", () => {
                         type: { enum_values: [ "one", "two", "three" ], array: true }
                     }
                 }
+            },
+            array_type: {
+                array: true,
+                type: "string"
             }
         };
 
@@ -68,6 +71,7 @@ describe("Typescript Generator Tests", () => {
     inlineEnum?: (one|two|three);
     inlineEnumArray?: (one|two|three)[];
 }
+export type array_type = string[];
 `
         );
 
