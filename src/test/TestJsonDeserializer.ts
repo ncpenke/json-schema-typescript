@@ -13,7 +13,7 @@ describe("JSON Deserializer Tests", () => {
         let json = [
             "one", "one", "three"
         ];
-        let deserializedJson = new JsonDeserializer().deserialize(JSON.parse(JSON.stringify(json)), types["enum_type"]);
+        let deserializedJson = new JsonDeserializer().deserialize(JSON.parse(JSON.stringify(json)), types["enum_type"], types);
         expect(deserializedJson).to.deep.equal(json);
     });
 
@@ -25,15 +25,32 @@ describe("JSON Deserializer Tests", () => {
                         type: {
                             type: "Date"
                         }
+                    },
+                    object_type: {
+                        type: {
+                            type: "nested_object_type"
+                        }
+                    }
+                }
+            },
+            nested_object_type: {
+                object_properties: {
+                    date_field: {
+                        type: {
+                            type: "Date"
+                        }
                     }
                 }
             }
         };
         let dateJson = {
             date_field: new Date(2021, 10, 10),
-            other_field: "123"
+            other_field: "123",
+            object_type: {
+                date_field: new Date(2021, 10, 11),
+            }
         }
-        let deserializedJson = new JsonDeserializer().deserialize(JSON.parse(JSON.stringify(dateJson)), types["object_type"]);
+        let deserializedJson = new JsonDeserializer().deserialize(JSON.parse(JSON.stringify(dateJson)), types["object_type"], types);
         expect(deserializedJson).to.deep.equal(dateJson);
     });
 });

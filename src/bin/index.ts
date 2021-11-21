@@ -26,9 +26,9 @@ let args = yargs.scriptName("json-schema-typescript")
             let inputFileName = args["input"] as string;
             let jsonSchema = new JsonSchema(JSON.parse(fs.readFileSync(inputFileName).toString()));
             let generator = new TypescriptGenerator(indent);
-            let namedTypes = jsonSchema.namedTypescriptTypes(args["schema-name"] as string);
-            let outDir = args["output-dir"] as string;
             let schemaName = path.win32.basename(inputFileName, path.extname(inputFileName));
+            let namedTypes = jsonSchema.namedTypescriptTypes(schemaName);
+            let outDir = args["output-dir"] as string;
 
             if (!fs.existsSync(outDir)) {
                 fs.mkdirSync(outDir);
