@@ -1,0 +1,54 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "$defs": {
+        "labels": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "step": {
+            "type": "object",
+            "properties": {
+                "labels": {
+                    "$ref": "#/$defs/labels",
+                    "required": true
+                },
+                "duration": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "required": true
+                },
+                "due_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "number",
+                    "required": true
+                },
+                "depends_on": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                }
+            }
+        }
+    },
+    "properties": {
+        "labels": { 
+            "$ref": "#/$defs/labels",
+            "required": true
+        },
+        "steps": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/step"
+            },
+            "required": true
+        }
+    }
+}
