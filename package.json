@@ -2,10 +2,11 @@
   "name": "json-schema-typescript",
   "version": "1.0.0",
   "description": "Generate typescript interfaces and deserializer logic from a JSON schema",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "test": "mocha -r ts-node/register --recursive 'src/**/Test*.ts'"
+    "test": "mocha -r ts-node/register --recursive 'src/**/Test*.ts'",
+    "package": "npm run build && npm pack"
   },
   "repository": {
     "type": "git",
@@ -27,5 +28,6 @@
   },
   "dependencies": {
     "yargs": "^17.2.1"
-  }
+  },
+  "bin": "dist/bin/cli.js"
 }
