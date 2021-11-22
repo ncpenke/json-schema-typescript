@@ -77,7 +77,7 @@ export class TypescriptGenerator
         for (let propName in objectProperties) {
             let propDef = objectProperties[propName];
             let optional = "?";
-            if ("required" in propDef || propDef.required) {
+            if (propDef?.required ?? false) {
                 optional = "";
             }
             try {
