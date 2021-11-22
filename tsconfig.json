@@ -1,13 +1,15 @@
 {
     "compilerOptions": {
-        "module": "commonjs",
+        "moduleResolution": "node",
         "noImplicitAny": true,
-        "sourceMap": true,
         "outDir": "dist",
         "rootDir": "src",
-        "target": "es5"
+        "strict": true,
+        "esModuleInterop": true,
+        "declaration": true /* Generates corresponding '.d.ts' file. */
     },
     "exclude": [
-        "node_modules"
+        "node_modules",
+        "dist"
     ]
 }

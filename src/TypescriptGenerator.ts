@@ -17,10 +17,10 @@ export class TypescriptGenerator
             if ("array" in def && def.array) {
                 ret.push(this.generateNamedArray(def, name));
             }
-            else if ("enum_values" in def) {
+            else if ("enum_values" in def && def.enum_values != undefined) {
                 ret.push(this.generateNamedEnum(def.enum_values, name))
             }
-            else if ("object_properties" in def) {
+            else if ("object_properties" in def && def.object_properties != undefined) {
                 ret.push(this.generateNamedInterface(def.object_properties, name));
             }
             else {
@@ -41,10 +41,10 @@ export class TypescriptGenerator
         if ("array" in type && type.array) {
             array = "[]";
         }
-        if ("enum_values" in type) {
+        if ("enum_values" in type && type.enum_values != undefined) {
             return `${this.generateInlineEnum(type.enum_values)}${array}`;
         }
-        else if ("object_properties" in type) {
+        else if ("object_properties" in type && type.object_properties != undefined) {
             return `${this.generateInlineInterface(type.object_properties, indent)}${array}`;
         }
         else {

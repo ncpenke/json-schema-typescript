@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Generate typescript interfaces and deserializer logic from a JSON schema",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "test": "mocha -r ts-node/register --recursive 'src/**/Test*.ts'",

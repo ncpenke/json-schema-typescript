@@ -45,7 +45,11 @@ export class JsonSchema
 
     public resolveRef(ref: string): JsonSchemaDefinition  
     {
-        return this._schema.$defs[this.resolvedRefName(ref)];
+        let resolvedName = this.resolvedRefName(ref);
+        if (this._schema.$defs == undefined || !(resolvedName in this._schema.$defs)) {
+            throw `${ref} not found`;
+        }
+        return this._schema.$defs[resolvedName];
     }
 
     public namedTypescriptTypes(rootTypeName: string): TypescriptNamedTypeMap
@@ -62,12 +66,15 @@ export class JsonSchema
 
     public toTypescriptType(element: JsonSchemaDefinition): TypescriptType
     {
-        if ("$ref" in element) {
+        if ("$ref" in element && element.$ref != undefined) {
             return { type: this.resolvedRefName(element.$ref) };
         }
         else if ("type" in element) {
             let type = element.type;
             if (type == "array") {
+                if (element.items == undefined) {
+                    throw `Expecting items to be defined for array ${JSON.stringify(element)}`;
+                }    
                 return {
                     ...this.toTypescriptType(element.items),
                     array: true
@@ -76,7 +83,7 @@ export class JsonSchema
             else if (type == "object") {
                 let properties: TypeScriptObjectPropertyMap = {}
                 let required:string[] = [];
-                if ("required" in element) {
+                if ("required" in element && element.required != undefined) {
                     required = element.required;
                 }
                 for (let key in element.properties) {
@@ -112,5 +119,7 @@ export class JsonSchema
                 }
             }
         }
+
+        throw `Could not convert ${JSON.stringify(element)}`;
     }
 }

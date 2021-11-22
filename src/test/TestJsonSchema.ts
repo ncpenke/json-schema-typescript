@@ -61,13 +61,13 @@ describe("JSON Schema Tests", () => {
         });
 
         it("Test toTypescriptType arrays", () => {
-            expect(schema.toTypescriptType(rootSchema.properties.array_field)).to.deep.equal(
+            expect(schema.toTypescriptType(rootSchema?.properties?.array_field ?? {})).to.deep.equal(
                 {
                     array: true,
                     type: "string_type"
                 } as TypescriptType
             );
-            expect(schema.toTypescriptType(rootSchema.properties.array_field_2)).to.deep.equal(
+            expect(schema.toTypescriptType(rootSchema?.properties?.array_field_2 ?? {})).to.deep.equal(
                 {
                     array: true,
                     type: "number"
@@ -76,7 +76,7 @@ describe("JSON Schema Tests", () => {
         });
 
         it("Test date field", () => {
-            expect(schema.toTypescriptType(rootSchema.properties.date_field)).to.deep.equal(
+            expect(schema.toTypescriptType(rootSchema?.properties?.date_field ?? {})).to.deep.equal(
                 {
                     type: "Date"
                 } as TypescriptType
@@ -84,7 +84,7 @@ describe("JSON Schema Tests", () => {
         });
 
         it ("Test object field", () => {
-            expect(schema.toTypescriptType(rootSchema.properties.object_field)).to.deep.equal(
+            expect(schema.toTypescriptType(rootSchema?.properties?.object_field ?? {})).to.deep.equal(
                 {
                     object_properties: {
                         "boolean_field": {
@@ -99,7 +99,7 @@ describe("JSON Schema Tests", () => {
                 } as TypescriptType
             );
 
-            expect(schema.toTypescriptType(rootSchema.properties.object_with_required_fields)).to.deep.equal(
+            expect(schema.toTypescriptType(rootSchema?.properties?.object_with_required_fields ?? {})).to.deep.equal(
                 {
                     object_properties: {
                         "boolean_field": {

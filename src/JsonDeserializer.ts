@@ -16,7 +16,7 @@ export class JsonDeserializer
                 return this.deserialize(obj, objectType, typeMap)
             });
         }
-        else if ("object_properties" in type) {
+        else if ("object_properties" in type && type.object_properties != undefined) {
             let ret = {
                 ...json
             };
@@ -27,13 +27,13 @@ export class JsonDeserializer
             }
             return ret;
         }
-        else if ("enum_values" in type) {
+        else if ("enum_values" in type && type.enum_values != undefined) {
             if (type.enum_values.indexOf(json as string) < 0) {
                 throw `Enum value ${JSON.stringify(json)} not found`;
             }
             return json;
         }
-        else if ("type" in type) {
+        else if ("type" in type && type.type != undefined) {
             let t = type.type;
             if (t == "Date") {
                 return new Date(json);
