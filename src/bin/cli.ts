@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { JsonSchema } from '../JsonSchema';
 import { TypescriptGenerator } from '../TypescriptGenerator';
+import { TypescriptConvertor } from '../TypescriptConvertor';
 
 let args = yargs.scriptName("json-schema-typescript")
     .command(
@@ -28,24 +29,23 @@ let args = yargs.scriptName("json-schema-typescript")
             let inputFileName = args["input"] as string;
             let jsonSchema = new JsonSchema(JSON.parse(fs.readFileSync(inputFileName).toString()));
             let generator = new TypescriptGenerator(indent);
-            let schemaName = path.win32.basename(inputFileName, path.extname(inputFileName));
-            let namedTypes = jsonSchema.namedTypescriptTypes(schemaName);
+            let schemaId = jsonSchema.schema?.$id ?? path.win32.basename(inputFileName, path.extname(inputFileName));
+            let convertor = new TypescriptConvertor(jsonSchema);
+            let namedTypes = convertor.namedTypescriptTypes(schemaId);
             let outDir = args["output-dir"] as string;
 
-            if (!fs.existsSync(outDir)) {
-                fs.mkdirSync(outDir);
+            let schemaFilePath = path.join(outDir, `${schemaId}.ts`);
+            let schemaFileDir = path.win32.dirname(schemaFilePath);
+            if (!fs.existsSync(schemaFileDir)) {
+                fs.mkdirSync(schemaFileDir);
             }
 
-            let generatedTypes =  generator.generateTypes(namedTypes);
-            let typeMap = JSON.stringify(namedTypes, null, "    ");
+            let generatedTypes =  generator.generateTypes(namedTypes, schemaId, true);
 
             fs.writeFileSync(
-                `${args["output-dir"]}/${schemaName}.ts`,
+                schemaFilePath,
                 `
-import * as jst from 'json-schema-typescript';
 ${generatedTypes}
-
-export const ${schemaName}TypeMap:jst.TypescriptNamedTypeMap = ${typeMap}
 `);
         }
     })

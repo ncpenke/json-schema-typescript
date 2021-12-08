@@ -6,7 +6,8 @@
         "rootDir": "src",
         "strict": true,
         "esModuleInterop": true,
-        "declaration": true /* Generates corresponding '.d.ts' file. */
+        "declaration": true /* Generates corresponding '.d.ts' file. */,
+        "target": "ES5"
     },
     "exclude": [
         "node_modules",

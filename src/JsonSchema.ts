@@ -1,5 +1,3 @@
-import { TypescriptNamedTypeMap, TypeScriptObjectPropertyMap, TypescriptType } from "./TypescriptDefinitions";
-
 export interface JsonSchemaDefinition
 {
     "type"?: string;
@@ -16,110 +14,59 @@ export interface JsonSchemaDefinition
 
 export interface JsonSchemaRootDefinition extends JsonSchemaDefinition
 {
+    "$id"?: string;
     "$defs"?: {[key:string]:JsonSchemaDefinition};
 }
 
+/**
+ * Encapsulates converting JSON schema to TypeScript definitions
+ */
 export class JsonSchema
 {
-    _schema: JsonSchemaRootDefinition;
+    private _schema: JsonSchemaRootDefinition;
+    
+    public static _schemaMap: {[key:string]: JsonSchemaRootDefinition} = {};
+
+    public static refTypeName(ref: string)
+    {
+        let refPath = ref.split("/");
+        return refPath[refPath.length - 1];
+    }
+
+    public static isExternalRef(ref: string)
+    {
+        return ref.length > 0 && ref[0] != "#";
+    }
 
     public constructor(schema: JsonSchemaRootDefinition)
     {
         this._schema = schema;
+        let id = schema?.$id ?? "";
+        if (id.length > 0) {
+            JsonSchema._schemaMap[id] = schema;
+        }
     }
 
-    private resolvedRefName(ref: string)
-    {
-        let refPath = ref.split("/");
-        if (refPath.length != 3) {
-            throw `Ref path error ${ref}. Ref must be of format #/$defs/<ref_name>`
-        }
-        if (refPath[0] != "#") {
-            throw `Ref path error ${ref}. Non-local ref paths are not supported`;
-        }
-        if (refPath[1] != "$defs") {
-            throw `Ref path error ${ref}. All refs must be in $defs`;
-        }
-        return refPath[2];
-    }
+    public get schema() { return this._schema; }
+
+    public get defs() { return this._schema?.$defs ?? {}; }
 
     public resolveRef(ref: string): JsonSchemaDefinition  
     {
-        let resolvedName = this.resolvedRefName(ref);
-        if (this._schema.$defs == undefined || !(resolvedName in this._schema.$defs)) {
-            throw `${ref} not found`;
-        }
-        return this._schema.$defs[resolvedName];
-    }
-
-    public namedTypescriptTypes(rootTypeName: string): TypescriptNamedTypeMap
-    {
-        let ret: TypescriptNamedTypeMap = {}
-        if ("$defs" in this._schema) {
-            for (let name in this._schema.$defs) {
-                ret[name] = this.toTypescriptType(this._schema.$defs[name]);
+        if (!JsonSchema.isExternalRef(ref)) {
+            let resolvedName = JsonSchema.refTypeName(ref);
+            if (this._schema.$defs == undefined || !(resolvedName in this._schema.$defs)) {
+                throw new Error(`Internal ${ref} not found`);
             }
+            return this._schema.$defs[resolvedName];
         }
-        ret[rootTypeName] = this.toTypescriptType(this._schema);
-        return ret;
-    }
-
-    public toTypescriptType(element: JsonSchemaDefinition): TypescriptType
-    {
-        if ("$ref" in element && element.$ref != undefined) {
-            return { type: this.resolvedRefName(element.$ref) };
-        }
-        else if ("type" in element) {
-            let type = element.type;
-            if (type == "array") {
-                if (element.items == undefined) {
-                    throw `Expecting items to be defined for array ${JSON.stringify(element)}`;
-                }    
-                return {
-                    ...this.toTypescriptType(element.items),
-                    array: true
-                };
-            }
-            else if (type == "object") {
-                let properties: TypeScriptObjectPropertyMap = {}
-                let required:string[] = [];
-                if ("required" in element && element.required != undefined) {
-                    required = element.required;
-                }
-                for (let key in element.properties) {
-                    let prop = element.properties[key];
-                    properties[key] = {
-                        required: required.indexOf(key) >= 0,
-                        type: this.toTypescriptType(prop)
-                    };
-                }
-                return {
-                    object_properties: properties
-                };
-            }
-            else if (type != "string") {
-                return {type: type};
+        else {
+            if (ref in JsonSchema._schemaMap) {
+                return JsonSchema._schemaMap[ref];
             }
             else {
-                if ("format" in element) {
-                    let format = element.format;
-                    if (format == "date") {
-                        return {type: "Date"};
-                    }
-                }
-                else if ("enum" in element) {
-                    return {
-                        enum_values: element.enum
-                    };
-                }
-                else {
-                    return {
-                        type: "string"
-                    };
-                }
+                throw new Error(`External ${ref} not found`);
             }
         }
-
-        throw `Could not convert ${JSON.stringify(element)}`;
     }
 }

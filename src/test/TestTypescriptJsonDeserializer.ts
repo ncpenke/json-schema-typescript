@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { JsonDeserializer } from "../JsonDeserializer";
+import { TypescriptJsonDeserializer } from "../TypescriptJsonDeserializer";
 import { TypescriptNamedTypeMap, TypescriptType } from "../TypescriptDefinitions";
 
 describe("JSON Deserializer Tests", () => {
@@ -13,7 +13,7 @@ describe("JSON Deserializer Tests", () => {
         let json = [
             "one", "one", "three"
         ];
-        let deserializedJson = new JsonDeserializer().deserialize(JSON.parse(JSON.stringify(json)), types["enum_type"], types);
+        let deserializedJson = new TypescriptJsonDeserializer().deserialize(JSON.parse(JSON.stringify(json)), types["enum_type"], types);
         expect(deserializedJson).to.deep.equal(json);
     });
 
@@ -50,7 +50,7 @@ describe("JSON Deserializer Tests", () => {
                 date_field: new Date(2021, 10, 11),
             }
         }
-        let deserializedJson = new JsonDeserializer().deserialize(JSON.parse(JSON.stringify(dateJson)), types["object_type"], types);
+        let deserializedJson = new TypescriptJsonDeserializer().deserialize(JSON.parse(JSON.stringify(dateJson)), types["object_type"], types);
         expect(deserializedJson).to.deep.equal(dateJson);
     });
 });

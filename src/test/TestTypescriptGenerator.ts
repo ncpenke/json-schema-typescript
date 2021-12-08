@@ -9,8 +9,9 @@ describe("Typescript Generator Tests", () => {
                 enum_values: [ "one", "two", "three" ]
             }
         };
-        expect(new TypescriptGenerator("    ").generateTypes(types)).to.equal(
-`export enum enum_type {
+        expect(new TypescriptGenerator("    ").generateTypes(types, "")).to.equal(
+`import * as jst from 'json-schema-typescript'
+export enum enum_type {
     ONE="one",
     TWO="two",
     THREE="three"
@@ -61,8 +62,9 @@ describe("Typescript Generator Tests", () => {
             }
         };
 
-        expect(new TypescriptGenerator("    ").generateTypes(types)).to.equal(
-`export interface object_type {
+        expect(new TypescriptGenerator("    ").generateTypes(types, "")).to.equal(
+`import * as jst from 'json-schema-typescript'
+export interface object_type {
     field1: string;
     inlineInterface: {
         field1?: number;
@@ -77,4 +79,34 @@ export type array_type = string[];
 
     });
 
+    it("Test generate refs to external schema ", () => {
+        let types: TypescriptNamedTypeMap = {
+            object_type: {
+                object_properties: {
+                    field1: {
+                        required: true,
+                        type: {
+                            externalSchemaId: "/schemas/external"
+                        }
+                    },
+                }
+            },
+            array_type: {
+                array: true,
+                type: "string"
+            }
+        };
+
+        expect(new TypescriptGenerator("    ").generateTypes(types, "/schemas/Main")).to.equal(
+`import * as jst from 'json-schema-typescript'
+import * as _schemas_external from "../../schemas/external";
+export interface object_type {
+    field1: _schemas_external.external;
+}
+export type array_type = string[];
+jst.TypescriptJsonDeserializer.register("/schemas/Main", { map: MainTypeMap, rootType: "Main" });
+`
+        );
+
+    });
 });

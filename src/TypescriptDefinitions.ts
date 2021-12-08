@@ -11,6 +11,7 @@ export interface TypescriptType
     array?: boolean;
     enum_values?: string[];
     object_properties?: TypeScriptObjectPropertyMap;
+    externalSchemaId?: string;
 }
 
 export type TypescriptNamedTypeMap = {

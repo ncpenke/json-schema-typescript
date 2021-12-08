@@ -2,8 +2,22 @@ import { TypescriptNamedTypeMap, TypescriptType } from "./TypescriptDefinitions"
 
 const gBuiltinTypes = [ "string", "boolean", "number" ];
 
-export class JsonDeserializer
-{    
+export interface TypescriptJsonDeserializerEntry
+{
+    map: TypescriptNamedTypeMap;
+    rootType: string;
+}
+
+export class TypescriptJsonDeserializer
+{   
+
+    private static _schemaTypeMaps:{[key:string]: TypescriptJsonDeserializerEntry}  = {};
+
+    public static register(key: string, entry: TypescriptJsonDeserializerEntry)
+    {
+        this._schemaTypeMaps[key] = entry;
+    }
+
     public deserialize(json: any, type: TypescriptType, typeMap: TypescriptNamedTypeMap): any
     {
         if ("array" in type && type.array)
@@ -42,7 +56,13 @@ export class JsonDeserializer
                 return json;
             }
             else {
-                return this.deserialize(json, typeMap[t], typeMap);
+                if ("externalSchemaId" in type && type.externalSchemaId != undefined) {
+                    let entry = TypescriptJsonDeserializer._schemaTypeMaps[type.externalSchemaId];
+                    return this.deserialize(json, entry.map[entry.rootType], entry.map);
+                }
+                else {
+                    return this.deserialize(json, typeMap[t], typeMap);
+                }
             }
         }
         else {

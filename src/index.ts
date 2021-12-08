@@ -1,2 +1,2 @@
 export * from './TypescriptDefinitions';
-export * from './JsonDeserializer'
+export * from './TypescriptJsonDeserializer'

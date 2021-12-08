@@ -1,15 +1,19 @@
+import { JsonSchema } from "./JsonSchema";
+import { TypescriptConvertor } from "./TypescriptConvertor";
 import { TypescriptNamedTypeMap, TypeScriptObjectPropertyMap, TypescriptType } from "./TypescriptDefinitions";
 
 export class TypescriptGenerator
 {
     _indent: string;
+    _externalSchemas: Set<string>;
 
     public constructor(indent: string)
     {
         this._indent = indent;
+        this._externalSchemas = new Set<string>();
     }
 
-    public generateTypes(types: TypescriptNamedTypeMap): string {
+    public generateTypes(types: TypescriptNamedTypeMap, currentSchemaId: string, outputTypeMap: boolean = false): string {
         let ret:string[] = [];
 
         for(let name in types) {
@@ -27,6 +31,25 @@ export class TypescriptGenerator
                 throw `Unimplemented type ${name}`;
             }
         }
+
+        let relativePrefix = TypescriptConvertor.schemaIdToRelativePath(currentSchemaId);
+        let imports = Array.from(this._externalSchemas.values()).map(s => {
+            return `import * as ${TypescriptConvertor.schemaIdToName(s)} from "${relativePrefix}${s}";\n`
+        });
+
+        let register = "";
+        let typeMapName = TypescriptConvertor.schemaIdToTypeMapName(currentSchemaId);
+        if (currentSchemaId.length > 0) {
+            register = `jst.TypescriptJsonDeserializer.register("${currentSchemaId}", { map:  ${typeMapName}, rootType: "${JsonSchema.refTypeName(currentSchemaId)}" });\n`;
+        }
+
+        ret = [
+            "import * as jst from 'json-schema-typescript'\n",
+            ...imports,
+            ...ret,
+            outputTypeMap ? `export const ${typeMapName}:jst.TypescriptNamedTypeMap = ${JSON.stringify(types, null, "    ")};\n`: "",
+            register
+        ];
 
         return ret.join("");
     }
@@ -48,7 +71,13 @@ export class TypescriptGenerator
             return `${this.generateInlineInterface(type.object_properties, indent)}${array}`;
         }
         else {
-            return `${type.type}${array}`;
+            if ("externalSchemaId" in type && type.externalSchemaId != undefined) {
+                this._externalSchemas.add(type.externalSchemaId);
+                return TypescriptConvertor.schemaIdToTypeName(type.externalSchemaId);
+            }
+            else {
+                return `${type.type}${array}`;
+            }
         }
     }
 
