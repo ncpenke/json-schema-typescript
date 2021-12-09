@@ -40,7 +40,7 @@ export class TypescriptGenerator
         let register = "";
         let typeMapName = TypescriptConvertor.schemaIdToTypeMapName(currentSchemaId);
         if (currentSchemaId.length > 0) {
-            register = `jst.TypescriptJsonDeserializer.register("${currentSchemaId}", { map:  ${typeMapName}, rootType: "${JsonSchema.refTypeName(currentSchemaId)}" });\n`;
+            register = `jst.TypescriptJsonDeserializer.register("${currentSchemaId}", { map: ${typeMapName}, rootType: "${JsonSchema.refTypeName(currentSchemaId)}" });\n`;
         }
 
         ret = [

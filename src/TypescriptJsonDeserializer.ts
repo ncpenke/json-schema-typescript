@@ -56,17 +56,15 @@ export class TypescriptJsonDeserializer
                 return json;
             }
             else {
-                if ("externalSchemaId" in type && type.externalSchemaId != undefined) {
-                    let entry = TypescriptJsonDeserializer._schemaTypeMaps[type.externalSchemaId];
-                    return this.deserialize(json, entry.map[entry.rootType], entry.map);
-                }
-                else {
-                    return this.deserialize(json, typeMap[t], typeMap);
-                }
+                return this.deserialize(json, typeMap[t], typeMap);
             }
         }
+        else  if ("externalSchemaId" in type && type.externalSchemaId != undefined) {
+            let entry = TypescriptJsonDeserializer._schemaTypeMaps[type.externalSchemaId];
+            return this.deserialize(json, entry.map[entry.rootType], entry.map);
+        }
         else {
-            throw `Could not process JSON ${JSON.stringify(json)}`;
+            throw new Error(`Could not process type ${JSON.stringify(type)} JSON ${JSON.stringify(json)}`);
         }
     }
 }

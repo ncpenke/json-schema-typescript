@@ -53,4 +53,59 @@ describe("JSON Deserializer Tests", () => {
         let deserializedJson = new TypescriptJsonDeserializer().deserialize(JSON.parse(JSON.stringify(dateJson)), types["object_type"], types);
         expect(deserializedJson).to.deep.equal(dateJson);
     });
+
+    it("Test external schema deserialization", () => {
+        let types: TypescriptNamedTypeMap = {
+            object_type: {
+                object_properties: {
+                    external_object: {
+                        type: {
+                            externalSchemaId: "/test/external"
+                        }
+                    },
+                }
+            },
+        };
+
+        let externalTypeMap: TypescriptNamedTypeMap = {
+            root_type: {
+                object_properties: {
+                    string_field: {
+                        type: {
+                            type: "string"
+                        }
+                    },
+                    object_field: {
+                        type: {
+                            type: "another_object_type"
+                        }
+                    }
+                }
+            },
+            another_object_type: {
+                object_properties: {
+                    number_field: {
+                        type: {
+                            type: "number"
+                        }
+                    }
+                }
+            }
+        };
+
+        let json = {
+            external_object: {
+                string_field: "test",
+                object_field: {
+                    number_field: 100
+                }
+            }
+        }
+        TypescriptJsonDeserializer.register("/test/external", {
+            map: externalTypeMap,
+            rootType: "root_type"
+        });
+        let deserializedJson = new TypescriptJsonDeserializer().deserialize(JSON.parse(JSON.stringify(json)), types["object_type"], types);
+        expect(deserializedJson).to.deep.equal(json);
+    });
 });
