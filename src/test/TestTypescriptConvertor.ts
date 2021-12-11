@@ -31,6 +31,10 @@ describe("Typescript Convertor Tests", () => {
                     "type": "string",
                     "format": "date"
                 },
+                "unknown_format_field": {
+                    "type": "string",
+                    "format": "unknown"
+                },
                 "object_field": {
                     "type": "object",
                     "properties": {
@@ -97,6 +101,14 @@ describe("Typescript Convertor Tests", () => {
             );
         });
 
+        it("Test unknown format field", () => {
+            expect(covnertor.toTypescriptType(rootSchema?.properties?.unknown_format_field ?? {})).to.deep.equal(
+                {
+                    type: "string"
+                } as TypescriptType
+            );
+        });
+
         it ("Test object field", () => {
             expect(covnertor.toTypescriptType(rootSchema?.properties?.object_field ?? {})).to.deep.equal(
                 {
@@ -138,6 +150,7 @@ describe("Typescript Convertor Tests", () => {
 
     it ("Test namedTypescriptTypes", () => {
         let rootSchema = {
+            $id: "root",
             $defs: {
                 named_enum: {
                     type: "string",
@@ -153,7 +166,7 @@ describe("Typescript Convertor Tests", () => {
         } as JsonSchemaRootDefinition;
         let schema = new JsonSchema(rootSchema);
         let convertor = new TypescriptConvertor(schema);
-        expect(convertor.namedTypescriptTypes("root")).to.deep.equal(
+        expect(convertor.namedTypescriptTypes()).to.deep.equal(
             {
                 root: {
                     object_properties: {

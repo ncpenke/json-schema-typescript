@@ -99,7 +99,7 @@ export type array_type = string[];
 
         expect(new TypescriptGenerator("    ").generateTypes(types, "/schemas/Main")).to.equal(
 `import * as jst from 'json-schema-typescript'
-import * as _schemas_external from "../../schemas/external";
+import * as _schemas_external from "../schemas/external";
 export interface object_type {
     field1: _schemas_external.external;
 }

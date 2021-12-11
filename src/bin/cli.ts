@@ -31,13 +31,15 @@ let args = yargs.scriptName("json-schema-typescript")
             let generator = new TypescriptGenerator(indent);
             let schemaId = jsonSchema.schema?.$id ?? path.win32.basename(inputFileName, path.extname(inputFileName));
             let convertor = new TypescriptConvertor(jsonSchema);
-            let namedTypes = convertor.namedTypescriptTypes(schemaId);
+            let namedTypes = convertor.namedTypescriptTypes();
             let outDir = args["output-dir"] as string;
 
             let schemaFilePath = path.join(outDir, `${schemaId}.ts`);
             let schemaFileDir = path.win32.dirname(schemaFilePath);
             if (!fs.existsSync(schemaFileDir)) {
-                fs.mkdirSync(schemaFileDir);
+                fs.mkdirSync(schemaFileDir, {
+                    recursive: true
+                });
             }
 
             let generatedTypes =  generator.generateTypes(namedTypes, schemaId, true);

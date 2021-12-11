@@ -15,7 +15,10 @@ export class TypescriptConvertor
     {
         let paths = schemaId.split("/");
         let ret = [];
-        for (let i = 0; i < paths.length; ++i) {
+        if (paths.length == 1) {
+            return "./";
+        }
+        for (let i = 0; i < paths.length - 1; ++i) {
             let p = paths[i];
             if (p.length > 0) {
                 ret.push("..");
@@ -41,13 +44,18 @@ export class TypescriptConvertor
     * @param rootTypeName The type name of the root element
     * @returns A mapping of type names to the type definitions
     */
-    public namedTypescriptTypes(rootTypeName: string): TypescriptNamedTypeMap
+    public namedTypescriptTypes(): TypescriptNamedTypeMap
     {
+        if (this._schema.schema.$id == undefined) {
+            throw new Error(`Schema needs \$id to generate Typescript`);
+        }
+
+        let rootTypeName = JsonSchema.refTypeName(this._schema.schema.$id);
         let ret: TypescriptNamedTypeMap = {}
         for (let name in this._schema.defs) {
             ret[name] = this.toTypescriptType(this._schema.defs[name]);
         }
-        
+         
         ret[rootTypeName] = this.toTypescriptType(this._schema.schema);
         return ret;
     }
@@ -102,6 +110,11 @@ export class TypescriptConvertor
                     let format = element.format;
                     if (format == "date") {
                         return {type: "Date"};
+                    }
+                    else {
+                        return {
+                            type: "string"
+                        }
                     }
                 }
                 else if ("enum" in element) {
