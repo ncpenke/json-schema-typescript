@@ -3,9 +3,7 @@
 import * as yargs from 'yargs';
 import * as fs from 'fs';
 import * as path from 'path';
-import { JsonSchema } from '../JsonSchema';
-import { TypescriptGenerator } from '../TypescriptGenerator';
-import { TypescriptConvertor } from '../TypescriptConvertor';
+import { JsonSchemaRootDefinition, TypescriptGenerator } from '../TypescriptGenerator';
 
 let args = yargs.scriptName("json-schema-typescript")
     .command(
@@ -27,14 +25,12 @@ let args = yargs.scriptName("json-schema-typescript")
         handler: (args: yargs.Arguments) => {
             let indent = "    ";
             let inputFileName = args["input"] as string;
-            let jsonSchema = new JsonSchema(JSON.parse(fs.readFileSync(inputFileName).toString()));
-            let generator = new TypescriptGenerator(indent);
-            let schemaId = jsonSchema.schema?.$id ?? path.win32.basename(inputFileName, path.extname(inputFileName));
-            let convertor = new TypescriptConvertor(jsonSchema);
-            let namedTypes = convertor.namedTypescriptTypes();
+            let jsonSchema = JSON.parse(fs.readFileSync(inputFileName).toString()) as JsonSchemaRootDefinition;
+            let schemaName = path.win32.basename(inputFileName, path.extname(inputFileName));
+            let generator = new TypescriptGenerator(jsonSchema, schemaName, indent);
             let outDir = args["output-dir"] as string;
 
-            let schemaFilePath = path.join(outDir, `${schemaId}.ts`);
+            let schemaFilePath = path.join(outDir, `${schemaName}.ts`);
             let schemaFileDir = path.win32.dirname(schemaFilePath);
             if (!fs.existsSync(schemaFileDir)) {
                 fs.mkdirSync(schemaFileDir, {
@@ -42,13 +38,7 @@ let args = yargs.scriptName("json-schema-typescript")
                 });
             }
 
-            let generatedTypes =  generator.generateTypes(namedTypes, schemaId, true);
-
-            fs.writeFileSync(
-                schemaFilePath,
-                `
-${generatedTypes}
-`);
+            fs.writeFileSync(schemaFilePath, generator.generate());
         }
     })
     .help()

@@ -1,17 +1,91 @@
 import { expect } from "chai";
-import { TypescriptNamedTypeMap, TypescriptType } from "../TypescriptDefinitions";
-import { TypescriptGenerator } from "../TypescriptGenerator";
+import { JsonSchemaRootDefinition, TypescriptGenerator, TypescriptGeneratorNamedTypeMap, TypescriptGeneratorTypeInfo } from "../TypescriptGenerator";
+import * as fs from 'fs';
 
-describe("Typescript Generator Tests", () => {
+let rootFname = "src/test/RootTestSchema.json";
+
+describe("TypescriptGenerator.toGeneratorTypeInfo Tests", () => {
+    let rootSchema = JSON.parse(fs.readFileSync(rootFname).toString()) as JsonSchemaRootDefinition;
+
+    it("Test arrays", () => {
+        expect(TypescriptGenerator.toGeneratorTypeInfo(rootSchema?.properties?.array_field ?? {}, rootSchema)).to.deep.equal(
+            {
+                array: {
+                    typeRef: "#/$defs/string_type"
+                }
+            } as TypescriptGeneratorTypeInfo
+        );
+
+        expect(TypescriptGenerator.toGeneratorTypeInfo(rootSchema?.properties?.array_field_2 ?? {}, rootSchema)).to.deep.equal(
+            {
+                array: {
+                    type: "number"
+                }
+            } as TypescriptGeneratorTypeInfo
+        );
+    });
+
+    it("Test date", () => {
+        expect(TypescriptGenerator.toGeneratorTypeInfo(rootSchema?.properties?.date_field ?? {}, rootSchema)).to.deep.equal(
+            {
+                type: "Date"
+            } as TypescriptGeneratorTypeInfo
+        );
+    });
+
+    it("Test unknown format field", () => {
+        expect(TypescriptGenerator.toGeneratorTypeInfo(rootSchema?.properties?.unknown_format_field ?? {}, rootSchema)).to.deep.equal(
+            {
+                type: "string"
+            } as TypescriptGeneratorTypeInfo
+        );
+    });
+
+    it ("Test object field", () => {
+        expect(TypescriptGenerator.toGeneratorTypeInfo(rootSchema?.properties?.object_field ?? {}, rootSchema)).to.deep.equal(
+            {
+                objectProperties: {
+                    "boolean_field": {
+                        typeInfo: { type: "boolean" }
+                    },
+                    "number_field": {
+                        typeInfo: { type: "number" }
+                    }
+                }
+            } as TypescriptGeneratorTypeInfo
+        );
+
+        expect(TypescriptGenerator.toGeneratorTypeInfo(rootSchema?.properties?.object_with_required_fields ?? {}, rootSchema)).to.deep.equal(
+            {
+                objectProperties: {
+                    "boolean_field": {
+                        required: true,
+                        typeInfo: { type: "boolean" }
+                    },
+                    "number_field": {
+                        typeInfo: { type: "number" }
+                    }
+                }
+            } as TypescriptGeneratorTypeInfo
+        );
+
+        expect(TypescriptGenerator.toGeneratorTypeInfo(rootSchema?.properties?.external_reference ?? {}, rootSchema)).to.deep.equal(
+            {
+                typeRef: "./External.json"
+            } as TypescriptGeneratorTypeInfo
+        );
+    });
+});
+
+describe("TypescriptGenerator.generateNamedTypes Tests", () => {
     it("Test generate named enum ", () => {
-        let types: TypescriptNamedTypeMap = {
+        let types: TypescriptGeneratorNamedTypeMap = {
             enum_type: {
-                enum_values: [ "one", "two", "three" ]
+                enumValues: [ "one", "two", "three" ]
             }
         };
-        expect(new TypescriptGenerator("    ").generateTypes(types, "")).to.equal(
-`import * as jst from 'json-schema-typescript'
-export enum enum_type {
+        expect((new TypescriptGenerator({}, "", "    ")).generateNamedTypes(types).join('')).to.equal(
+`export enum enum_type {
     ONE="one",
     TWO="two",
     THREE="three"
@@ -21,50 +95,55 @@ export enum enum_type {
     });
 
     it("Test generate named interface ", () => {
-        let types: TypescriptNamedTypeMap = {
+        let types: TypescriptGeneratorNamedTypeMap = {
             object_type: {
-                object_properties: {
+                objectProperties: {
                     field1: {
                         required: true,
-                        type: {
+                        typeInfo: {
                             type: "string"
                         }
                     },
                     inlineInterface: {
                         required: true,
-                        type: {
-                            object_properties: {
+                        typeInfo: {
+                            objectProperties: {
                                 field1: {
-                                    type: {
+                                    typeInfo: {
                                         type: "number"
                                     }
                                 },
                                 field2: {
-                                    type: {
-                                        type: "string",
-                                        array: true
+                                    typeInfo: {
+                                        array: {
+                                            type: "string"
+                                        }
                                     }
                                 }
                             }
                         }
                     },
                     inlineEnum: {
-                        type: { enum_values: [ "one", "two", "three" ] }
+                        typeInfo: { enumValues: [ "one", "two", "three" ] }
                     },
                     inlineEnumArray: {
-                        type: { enum_values: [ "one", "two", "three" ], array: true }
+                        typeInfo: {
+                            array: {
+                                enumValues: [ "one", "two", "three" ]
+                            }
+                        }
                     }
                 }
             },
             array_type: {
-                array: true,
-                type: "string"
+                array: {
+                    type: "string"
+                }
             }
         };
 
-        expect(new TypescriptGenerator("    ").generateTypes(types, "")).to.equal(
-`import * as jst from 'json-schema-typescript'
-export interface object_type {
+        expect(new TypescriptGenerator({}, "", "    ").generateNamedTypes(types).join("")).to.equal(
+`export interface object_type {
     field1: string;
     inlineInterface: {
         field1?: number;
@@ -76,37 +155,219 @@ export interface object_type {
 export type array_type = string[];
 `
         );
-
     });
 
     it("Test generate refs to external schema ", () => {
-        let types: TypescriptNamedTypeMap = {
+        let types: TypescriptGeneratorNamedTypeMap = {
             object_type: {
-                object_properties: {
+                objectProperties: {
                     field1: {
                         required: true,
-                        type: {
-                            externalSchemaId: "/schemas/external"
+                        typeInfo: {
+                            typeRef: "./External.json"
                         }
                     },
                 }
             },
             array_type: {
-                array: true,
-                type: "string"
+                array: {
+                    type: "string"
+                }
             }
         };
 
-        expect(new TypescriptGenerator("    ").generateTypes(types, "/schemas/Main")).to.equal(
-`import * as jst from 'json-schema-typescript'
-import * as _schemas_external from "../schemas/external";
-export interface object_type {
-    field1: _schemas_external.external;
+        expect(new TypescriptGenerator({}, "", "    ").generateNamedTypes(types).join("")).to.equal(
+`export interface object_type {
+    field1: _External.External;
 }
 export type array_type = string[];
-jst.TypescriptJsonDeserializer.register("/schemas/Main", { map: MainTypeMap, rootType: "Main" });
 `
         );
+    });
+});
 
+describe("TypescriptGenerator.generateNamedTypeInfo Tests", () => {
+    it("Test generate named enum ", () => {
+        let types: TypescriptGeneratorNamedTypeMap = {
+            enum_type: {
+                enumValues: [ "one", "two", "three" ]
+            }
+        };
+        expect((new TypescriptGenerator({}, "", "    ")).generateNamedTypeInfo(types).join("")).to.equal(
+`export let enum_typeTypeInfo: TypescriptJsonDeserializerTypeInfo = {
+    enumValues: [
+        "one",
+        "two",
+        "three"
+    ]
+};
+`
+        );
+    });
+
+    it("Test generate named interface ", () => {
+        let types: TypescriptGeneratorNamedTypeMap = {
+            object_type: {
+                objectProperties: {
+                    field1: {
+                        required: true,
+                        typeInfo: {
+                            type: "string"
+                        }
+                    },
+                    inlineInterface: {
+                        required: true,
+                        typeInfo: {
+                            objectProperties: {
+                                field1: {
+                                    typeInfo: {
+                                        type: "number"
+                                    }
+                                },
+                                field2: {
+                                    typeInfo: {
+                                        array: {
+                                            type: "string"
+                                        }
+                                    }
+                                },
+                                field3: {
+                                    typeInfo: {
+                                        typeRef: "#/$defs/Test"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    inlineEnum: {
+                        typeInfo: { enumValues: [ "one", "two", "three" ] }
+                    },
+                    inlineEnumArray: {
+                        typeInfo: {
+                            array: {
+                                enumValues: [ "one", "two", "three" ]
+                            }
+                        }
+                    }
+                }
+            },
+            array_type: {
+                array: {
+                    type: "string"
+                }
+            }
+        };
+
+        expect(new TypescriptGenerator({}, "", "    ").generateNamedTypeInfo(types).join("")).to.equal(
+`export let object_typeTypeInfo: TypescriptJsonDeserializerTypeInfo = {
+    objectProperties: {
+        field1: {
+            typeInfo: {
+                type: "string"
+            },
+            required: true
+        },
+        inlineInterface: {
+            typeInfo: {
+                objectProperties: {
+                    field1: {
+                        typeInfo: {
+                            type: "number"
+                        }
+                    },
+                    field2: {
+                        typeInfo: {
+                            array: {
+                                type: "string"
+                            }
+                        }
+                    },
+                    field3: {
+                        typeInfo: TestTypeInfo
+                    }
+                }
+            },
+            required: true
+        },
+        inlineEnum: {
+            typeInfo: {
+                enumValues: [
+                    "one",
+                    "two",
+                    "three"
+                ]
+            }
+        },
+        inlineEnumArray: {
+            typeInfo: {
+                array: {
+                    enumValues: [
+                        "one",
+                        "two",
+                        "three"
+                    ]
+                }
+            }
+        }
+    }
+};
+export let array_typeTypeInfo: TypescriptJsonDeserializerTypeInfo = {
+    array: {
+        type: "string"
+    }
+};
+`
+        );
+    });
+
+    it("Test generate refs to external schema ", () => {
+        let types: TypescriptGeneratorNamedTypeMap = {
+            object_type: {
+                objectProperties: {
+                    field1: {
+                        required: true,
+                        typeInfo: {
+                            typeRef: "./External.json"
+                        }
+                    }
+                }
+            }
+        };
+
+        expect(new TypescriptGenerator({}, "", "    ").generateNamedTypeInfo(types).join("")).to.equal(
+`export let object_typeTypeInfo: TypescriptJsonDeserializerTypeInfo = {
+    objectProperties: {
+        field1: {
+            typeInfo: _External.ExternalTypeInfo,
+            required: true
+        }
+    }
+};
+`
+        );
+    });
+});
+
+
+describe("TypescriptGenerator.generateImports Tests", () => {
+    let rootSchema = JSON.parse(fs.readFileSync(rootFname).toString()) as JsonSchemaRootDefinition;
+    let generator = new TypescriptGenerator(rootSchema, "", "    ");
+    generator.generate(); // ignore return value. run to initialize internal structure for imports
+    it ("Test imports", () => {
+        expect(generator.generateImports().join("")).to.equal(
+`import * as _External from "./External.ts";
+import { TypescriptJsonDeserializerTypeInfo } from 'json-schema-typescript';
+`
+        );
+    });
+})
+
+describe("TypescriptGenerator.determineDependencyOrder Tests", () => {
+    let rootSchema = JSON.parse(fs.readFileSync(rootFname).toString()) as JsonSchemaRootDefinition;
+    let generator = new TypescriptGenerator(rootSchema, "RootTestSchema", "    ");
+    it ("Tets deps", () => {
+        expect(generator.determineDependencyOrder()).to.deep.equal([
+            "string_type", "RootTestSchema"
+        ]);
     });
 });

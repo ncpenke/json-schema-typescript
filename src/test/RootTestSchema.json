@@ -1,0 +1,60 @@
+{
+    "$defs": {
+        "string_type": {
+            "type": "string"
+        }
+    },
+    "properties": {
+        "string_field": {
+            "$ref": "#/$defs/string_type"
+        },
+        "array_field": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/string_type"
+            }
+        },
+        "array_field_2": {
+            "type": "array",
+            "items": {
+                "type": "number"
+            }
+        },
+        "date_field": {
+            "type": "string",
+            "format": "date"
+        },
+        "unknown_format_field": {
+            "type": "string",
+            "format": "unknown"
+        },
+        "object_field": {
+            "type": "object",
+            "properties": {
+                "boolean_field": {
+                    "type": "boolean"
+                },
+                "number_field": {
+                    "type": "number"
+                }
+            }
+        },
+        "object_with_required_fields": {
+            "type": "object",
+            "properties": {
+                "boolean_field": {
+                    "type": "boolean"
+                },
+                "number_field": {
+                    "type": "number"
+                }
+            },
+            "required": [ "boolean_field" ]
+        },
+        "external_reference": {
+            "$ref": "./External.json"
+        }
+    },
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

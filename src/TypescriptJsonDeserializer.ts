@@ -1,70 +1,64 @@
-import { TypescriptNamedTypeMap, TypescriptType } from "./TypescriptDefinitions";
+const gBuiltinTypes = [ "string", "boolean", "number", "Date" ];
 
-const gBuiltinTypes = [ "string", "boolean", "number" ];
-
-export interface TypescriptJsonDeserializerEntry
+/**
+ * Captures type information used by the deserializer to perform conversions and to traverse
+ * arrays and objects.
+ */
+export interface TypescriptJsonDeserializerTypeInfo
 {
-    map: TypescriptNamedTypeMap;
-    rootType: string;
+    array?: TypescriptJsonDeserializerTypeInfo;
+    objectProperties?: {[name:string]: 
+        {
+            required?: boolean,
+            typeInfo: TypescriptJsonDeserializerTypeInfo
+        }
+    };
+    enumValues?: string[];
+    type?: string;
 }
 
 export class TypescriptJsonDeserializer
 {   
-
-    private static _schemaTypeMaps:{[key:string]: TypescriptJsonDeserializerEntry}  = {};
-
-    public static register(key: string, entry: TypescriptJsonDeserializerEntry)
+    public deserialize(json: any, typeInfo: TypescriptJsonDeserializerTypeInfo): any
     {
-        this._schemaTypeMaps[key] = entry;
-    }
-
-    public deserialize(json: any, type: TypescriptType, typeMap: TypescriptNamedTypeMap): any
-    {
-        if ("array" in type && type.array)
+        if (typeInfo?.array != undefined)
         {
-            let objectType = {
-                ...type,
-                array: false
-            };
+            let arr = typeInfo.array;
             return (json as []).map(obj => {
-                return this.deserialize(obj, objectType, typeMap)
+                return this.deserialize(obj, arr)
             });
         }
-        else if ("object_properties" in type && type.object_properties != undefined) {
-            let ret = {
-                ...json
-            };
-            for (let key in type.object_properties) {
+        else if (typeInfo?.type != undefined) {
+            let builtIn = typeInfo.type;
+            if (gBuiltinTypes.indexOf(builtIn) < 0) {
+                throw new Error(`Builtin type ${builtIn} not found`);
+            }
+            if (builtIn == "Date") {
+                return new Date(json);
+            } 
+            return json;
+        }
+        else if (typeInfo?.objectProperties != undefined) {
+            let ret:any = {};
+            for (let key in typeInfo.objectProperties) {
+                let prop = typeInfo.objectProperties[key];
                 if (key in json) {
-                    ret[key] = this.deserialize(json[key], type.object_properties[key].type, typeMap);
+                    ret[key] = this.deserialize(json[key], prop.typeInfo);
+                }
+                else if (prop.required) {
+                    throw new Error(`Required key ${key} not found`);
                 }
             }
             return ret;
         }
-        else if ("enum_values" in type && type.enum_values != undefined) {
-            if (type.enum_values.indexOf(json as string) < 0) {
+        else if (typeInfo?.enumValues != undefined) {
+            if (typeInfo.enumValues.indexOf(json as string) < 0) {
                 throw `Enum value ${JSON.stringify(json)} not found`;
             }
             return json;
         }
-        else if ("type" in type && type.type != undefined) {
-            let t = type.type;
-            if (t == "Date") {
-                return new Date(json);
-            }
-            else if (gBuiltinTypes.indexOf(t) >= 0) {
-                return json;
-            }
-            else {
-                return this.deserialize(json, typeMap[t], typeMap);
-            }
-        }
-        else  if ("externalSchemaId" in type && type.externalSchemaId != undefined) {
-            let entry = TypescriptJsonDeserializer._schemaTypeMaps[type.externalSchemaId];
-            return this.deserialize(json, entry.map[entry.rootType], entry.map);
-        }
         else {
-            throw new Error(`Could not process type ${JSON.stringify(type)} JSON ${JSON.stringify(json)}`);
+            throw new Error(`Could not process type ${JSON.stringify(typeInfo)} JSON ${JSON.stringify(json)}`);
         }
     }
 }

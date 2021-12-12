@@ -9,6 +9,9 @@
         "declaration": true /* Generates corresponding '.d.ts' file. */,
         "target": "ES5"
     },
+    "include": [
+        "./src/**/*.ts"
+    ],
     "exclude": [
         "node_modules",
         "dist"

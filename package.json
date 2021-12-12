@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc",
     "test": "mocha -r ts-node/register --recursive 'src/**/Test*.ts'",
-    "run_example": "ts-node ./src/bin/cli.ts -i ./examples/ExampleSchema.json -o t && rm -rf t",
+    "run_example": "ts-node ./src/bin/cli.ts -i ./examples/ExampleSchema.json -o gen",
     "package": "npm run build && npm pack"
   },
   "repository": {
