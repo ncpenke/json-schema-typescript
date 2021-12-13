@@ -193,7 +193,7 @@ describe("TypescriptGenerator.generateNamedTypeInfo Tests", () => {
                 enumValues: [ "one", "two", "three" ]
             }
         };
-        expect((new TypescriptGenerator({}, "", "    ")).generateNamedTypeInfo(types).join("")).to.equal(
+        expect(TypescriptGenerator.generateNamedTypeInfo(types, ["enum_type"], "    ").join("")).to.equal(
 `export let enum_typeTypeInfo: TypescriptJsonDeserializerTypeInfo = {
     enumValues: [
         "one",
@@ -258,7 +258,7 @@ describe("TypescriptGenerator.generateNamedTypeInfo Tests", () => {
             }
         };
 
-        expect(new TypescriptGenerator({}, "", "    ").generateNamedTypeInfo(types).join("")).to.equal(
+        expect(TypescriptGenerator.generateNamedTypeInfo(types, ["object_type", "array_type"], "    ").join("")).to.equal(
 `export let object_typeTypeInfo: TypescriptJsonDeserializerTypeInfo = {
     objectProperties: {
         field1: {
@@ -334,7 +334,7 @@ export let array_typeTypeInfo: TypescriptJsonDeserializerTypeInfo = {
             }
         };
 
-        expect(new TypescriptGenerator({}, "", "    ").generateNamedTypeInfo(types).join("")).to.equal(
+        expect(TypescriptGenerator.generateNamedTypeInfo(types, ["object_type"], "    ").join("")).to.equal(
 `export let object_typeTypeInfo: TypescriptJsonDeserializerTypeInfo = {
     objectProperties: {
         field1: {
@@ -352,7 +352,6 @@ export let array_typeTypeInfo: TypescriptJsonDeserializerTypeInfo = {
 describe("TypescriptGenerator.generateImports Tests", () => {
     let rootSchema = JSON.parse(fs.readFileSync(rootFname).toString()) as JsonSchemaRootDefinition;
     let generator = new TypescriptGenerator(rootSchema, "", "    ");
-    generator.generate(); // ignore return value. run to initialize internal structure for imports
     it ("Test imports", () => {
         expect(generator.generateImports().join("")).to.equal(
 `import * as _External from "./External.ts";

@@ -72,16 +72,55 @@ export interface TypescriptJsonDeserializerTypeInfoInternal
 export class TypescriptGenerator
 {
     private _indent: string;
-    private _externalRefs: Set<string>;
+    private _externalRefs: string[];
     private _schema: JsonSchemaRootDefinition;
     private _schemaName: string;
+    private _dependencyOrder: string[];
 
     public constructor(schema: JsonSchemaRootDefinition, schemaName: string, indent: string)
     {
         this._indent = indent;
-        this._externalRefs = new Set<string>();
+        this._externalRefs = TypescriptGenerator.externalRefs(schema);
         this._schema = schema;
         this._schemaName = schemaName;
+        this._dependencyOrder =  this.determineDependencyOrder();
+    }
+
+    private static externalRefs(schema: JsonSchemaRootDefinition): string[]
+    {
+        let ret = [
+            ...this.externalRefsHelper(schema)
+        ];
+        for (let k in schema.$defs) {
+            ret.push(...this.externalRefsHelper(schema.$defs[k]));
+        }
+        return this.removeDuplicates(ret);
+    }
+
+    private static externalRefsHelper(schema: JsonSchemaDefinition): string[]
+    {
+        if (schema?.$ref != undefined) {
+            if (TypescriptGenerator.isExternalRef(schema.$ref)) {
+                return [ schema.$ref ];
+            }
+            else {
+                return [];
+            }
+        }
+        else if(schema?.items != undefined) {
+            return this.externalRefs(schema.items);
+        }
+        else if (schema?.properties != undefined) {
+            let ret: string[] = [];
+            for (let k in schema.properties) {
+                let prop = schema.properties[k];
+                ret.push(...this.externalRefs(schema.properties[k]));
+            }
+            return ret;
+        }
+        else {
+            return [];
+        }
     }
 
     /**
@@ -210,7 +249,7 @@ export class TypescriptGenerator
         return [
             ...this.generateImports(),
             ...this.generateNamedTypes(namedTypeMap),
-            ...this.generateNamedTypeInfo(namedTypeMap)
+            ...TypescriptGenerator.generateNamedTypeInfo(namedTypeMap, this._dependencyOrder, this._indent)
         ].join("");
     }
 
@@ -334,13 +373,12 @@ export class TypescriptGenerator
         return ret;
     }
 
-    public generateNamedTypeInfo(namedTypeMap: TypescriptGeneratorNamedTypeMap): string[]
+    public static generateNamedTypeInfo(namedTypeMap: TypescriptGeneratorNamedTypeMap, order: string[], indent: string): string[]
     {
         let ret: string[] = [];
-        let deps = this.determineDependencyOrder();
-        deps.forEach(k => {
+        order.forEach(k => {
             let type = namedTypeMap[k];
-            ret.push(`export let ${k}TypeInfo: TypescriptJsonDeserializerTypeInfo = ${stringifyDefaultObject(TypescriptGenerator.internalGeneratorTypeInfo(type) as DefaultObject, "", this._indent)};\n`);
+            ret.push(`export let ${k}TypeInfo: TypescriptJsonDeserializerTypeInfo = ${stringifyDefaultObject(TypescriptGenerator.internalGeneratorTypeInfo(type) as DefaultObject, "", indent)};\n`);
         });
         return ret;
     }
@@ -390,11 +428,7 @@ export class TypescriptGenerator
             return `${this.generateInlineInterface(typeInfo.objectProperties, indent)}`;
         }
         else if (typeInfo?.typeRef != undefined) {
-            let ref = typeInfo.typeRef;
-            if (TypescriptGenerator.isExternalRef(ref)) {
-                this._externalRefs.add(ref);
-            }
-            return TypescriptGenerator.resolvedRefType(ref);
+            return TypescriptGenerator.resolvedRefType(typeInfo.typeRef);
         }
         else if (typeInfo?.type != undefined) {
             return typeInfo.type;
