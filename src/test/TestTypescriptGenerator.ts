@@ -354,7 +354,7 @@ describe("TypescriptGenerator.generateImports Tests", () => {
     let generator = new TypescriptGenerator(rootSchema, "", "    ");
     it ("Test imports", () => {
         expect(generator.generateImports().join("")).to.equal(
-`import * as _External from "./External.ts";
+`import * as _External from "./External";
 import { TypescriptJsonDeserializerTypeInfo } from 'json-schema-typescript';
 `
         );

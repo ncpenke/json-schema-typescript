@@ -256,7 +256,7 @@ export class TypescriptGenerator
     public generateImports(): string[]
     {
         let ret = Array.from(this._externalRefs.values()).map(s => {
-            return `import * as _${TypescriptGenerator.unresolvedRefType(s)} from "${s.replace(path.extname(s), ".ts")}";\n`
+            return `import * as _${TypescriptGenerator.unresolvedRefType(s)} from "${s.replace(path.extname(s), "")}";\n`
         });
         ret.push("import { TypescriptJsonDeserializerTypeInfo } from 'json-schema-typescript';\n")
         return ret;
