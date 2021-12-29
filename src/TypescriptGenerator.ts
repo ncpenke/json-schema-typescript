@@ -439,7 +439,7 @@ export class TypescriptGenerator
     }
 
     private generateInlineEnum(values: string[]) {
-        return `(${values.join("|")})`;
+        return `(${values.map(v => TypescriptGenerator.quotedString(v)).join("|")})`;
     }
 
     private generateNamedEnum(values: string[], name: string) {

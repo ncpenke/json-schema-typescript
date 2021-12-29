@@ -149,8 +149,8 @@ describe("TypescriptGenerator.generateNamedTypes Tests", () => {
         field1?: number;
         field2?: string[];
     };
-    inlineEnum?: (one|two|three);
-    inlineEnumArray?: (one|two|three)[];
+    inlineEnum?: ("one"|"two"|"three");
+    inlineEnumArray?: ("one"|"two"|"three")[];
 }
 export type array_type = string[];
 `
