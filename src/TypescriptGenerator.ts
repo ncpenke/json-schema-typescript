@@ -209,6 +209,11 @@ export class TypescriptGenerator
             }
             return ret;
         }
+        else if (type == "integer") {
+            return {
+                type: "number"
+            };
+        }
         else if (type.length > 0) {
             return {
                 type: type

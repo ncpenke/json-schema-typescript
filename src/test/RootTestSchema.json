@@ -54,13 +54,8 @@
         "external_reference": {
             "$ref": "./ExternalTestSchema.json"
         },
-        "inline_enum_field": {
-            "type": "string",
-            "enum": [
-                "ONE",
-                "TWO",
-                "THREE"
-            ]
+        "integer_field": {
+            "type": "integer"
         }
     },
     "type": "object",

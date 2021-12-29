@@ -7,7 +7,7 @@ let rootFname = "src/test/RootTestSchema.json";
 describe("TypescriptGenerator.toGeneratorTypeInfo Tests", () => {
     let rootSchema = JSON.parse(fs.readFileSync(rootFname).toString()) as JsonSchemaRootDefinition;
 
-    it("Test arrays", () => {
+    it("Test array field", () => {
         expect(TypescriptGenerator.toGeneratorTypeInfo(rootSchema?.properties?.array_field ?? {}, rootSchema)).to.deep.equal(
             {
                 array: {
@@ -25,7 +25,7 @@ describe("TypescriptGenerator.toGeneratorTypeInfo Tests", () => {
         );
     });
 
-    it("Test date", () => {
+    it("Test date field", () => {
         expect(TypescriptGenerator.toGeneratorTypeInfo(rootSchema?.properties?.date_field ?? {}, rootSchema)).to.deep.equal(
             {
                 type: "Date"
@@ -33,6 +33,14 @@ describe("TypescriptGenerator.toGeneratorTypeInfo Tests", () => {
         );
     });
 
+    it("Test integer field", () => {
+        expect(TypescriptGenerator.toGeneratorTypeInfo(rootSchema?.properties?.integer_field ?? {}, rootSchema)).to.deep.equal(
+            {
+                type: "number"
+            } as TypescriptGeneratorTypeInfo
+        );
+    });
+    
     it("Test unknown format field", () => {
         expect(TypescriptGenerator.toGeneratorTypeInfo(rootSchema?.properties?.unknown_format_field ?? {}, rootSchema)).to.deep.equal(
             {
@@ -132,7 +140,7 @@ describe("TypescriptGenerator.generateNamedTypes Tests", () => {
                                 enumValues: [ "one", "two", "three" ]
                             }
                         }
-                    }
+                    },
                 }
             },
             array_type: {
