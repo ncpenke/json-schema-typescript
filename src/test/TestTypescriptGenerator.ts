@@ -71,7 +71,7 @@ describe("TypescriptGenerator.toGeneratorTypeInfo Tests", () => {
 
         expect(TypescriptGenerator.toGeneratorTypeInfo(rootSchema?.properties?.external_reference ?? {}, rootSchema)).to.deep.equal(
             {
-                typeRef: "./External.json"
+                typeRef: "./ExternalTestSchema.json"
             } as TypescriptGeneratorTypeInfo
         );
     });
@@ -354,7 +354,7 @@ describe("TypescriptGenerator.generateImports Tests", () => {
     let generator = new TypescriptGenerator(rootSchema, "", "    ");
     it ("Test imports", () => {
         expect(generator.generateImports().join("")).to.equal(
-`import * as _External from "./External";
+`import * as _ExternalTestSchema from "./ExternalTestSchema";
 import { TypescriptJsonDeserializerTypeInfo } from 'json-schema-typescript';
 `
         );

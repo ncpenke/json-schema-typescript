@@ -52,7 +52,7 @@
             "required": [ "boolean_field" ]
         },
         "external_reference": {
-            "$ref": "./External.json"
+            "$ref": "./ExternalTestSchema.json"
         }
     },
     "type": "object",
