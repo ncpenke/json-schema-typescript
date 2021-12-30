@@ -46,7 +46,7 @@ export class TypescriptJsonDeserializer
                     ret[key] = this.deserialize(json[key], prop.typeInfo);
                 }
                 else if (prop.required) {
-                    throw new Error(`Required key ${key} not found`);
+                    throw new Error(`Required key ${key} not found in ${JSON.stringify(json, null, 2)}`);
                 }
             }
             return ret;
