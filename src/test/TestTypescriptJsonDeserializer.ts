@@ -1,43 +1,47 @@
 import { expect } from "chai";
+import { TypescriptGeneratorNamedTypeMap } from "../TypescriptGenerator";
 import { TypescriptJsonDeserializer } from "../TypescriptJsonDeserializer";
 
-/*
+
 describe("JSON Deserializer Tests", () => {
     it("Test pass through ", () => {
-        let types: TypescriptNamedTypeMap = {
+        let types: TypescriptGeneratorNamedTypeMap = {
             enum_type: {
-                array: true,
-                enum_values: [ "one", "two", "three" ]
+                array: {
+                    enumValues: [ "one", "two", "three" ]
+                }
             }
         };
         let json = [
             "one", "one", "three"
         ];
-        let deserializedJson = new TypescriptJsonDeserializer().deserialize(JSON.parse(JSON.stringify(json)), types["enum_type"], types);
+        let deserializedJson = new TypescriptJsonDeserializer().deserialize(JSON.parse(JSON.stringify(json)), types.enum_type);
         expect(deserializedJson).to.deep.equal(json);
     });
-
+    
     it("Test date conversion", () => {
-        let types: TypescriptNamedTypeMap = {
+        let types: TypescriptGeneratorNamedTypeMap = {
             object_type: {
-                object_properties: {
+                objectProperties: {
                     date_field: {
-                        type: {
+                        typeInfo: {
                             type: "Date"
                         }
                     },
-                    object_type: {
-                        type: {
-                            type: "nested_object_type"
+                    other_field: {
+                        typeInfo: {
+                            type: "string"
                         }
-                    }
-                }
-            },
-            nested_object_type: {
-                object_properties: {
-                    date_field: {
-                        type: {
-                            type: "Date"
+                    },
+                    object_type: {
+                        typeInfo: {
+                            objectProperties: {
+                                date_field: {
+                                    typeInfo: {
+                                        type: "Date"
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -50,49 +54,45 @@ describe("JSON Deserializer Tests", () => {
                 date_field: new Date(2021, 10, 11),
             }
         }
-        let deserializedJson = new TypescriptJsonDeserializer().deserialize(JSON.parse(JSON.stringify(dateJson)), types["object_type"], types);
+        let deserializedJson = new TypescriptJsonDeserializer().deserialize(JSON.parse(JSON.stringify(dateJson)), types.object_type);
         expect(deserializedJson).to.deep.equal(dateJson);
     });
-
+    
     it("Test external schema deserialization", () => {
-        let types: TypescriptNamedTypeMap = {
-            object_type: {
-                object_properties: {
-                    external_object: {
-                        type: {
-                            externalSchemaRef: "/test/external"
-                        }
-                    },
-                }
-            },
-        };
-
-        let externalTypeMap: TypescriptNamedTypeMap = {
+        let externalTypeMap: TypescriptGeneratorNamedTypeMap = {
             root_type: {
-                object_properties: {
+                objectProperties: {
                     string_field: {
-                        type: {
+                        typeInfo: {
                             type: "string"
                         }
                     },
                     object_field: {
-                        type: {
-                            type: "another_object_type"
-                        }
-                    }
-                }
-            },
-            another_object_type: {
-                object_properties: {
-                    number_field: {
-                        type: {
-                            type: "number"
+                        typeInfo: {
+                            objectProperties: {
+                                number_field: {
+                                    typeInfo: {
+                                        type: "number"
+                                    }
+                                }
+                            }
+                            
                         }
                     }
                 }
             }
         };
-
+        
+        let types: TypescriptGeneratorNamedTypeMap = {
+            object_type: {
+                objectProperties: {
+                    external_object: {
+                        typeInfo: externalTypeMap.root_type
+                    },
+                }
+            },
+        };
+        
         let json = {
             external_object: {
                 string_field: "test",
@@ -101,12 +101,7 @@ describe("JSON Deserializer Tests", () => {
                 }
             }
         }
-        TypescriptJsonDeserializer.register("/test/external", {
-            map: externalTypeMap,
-            rootType: "root_type"
-        });
-        let deserializedJson = new TypescriptJsonDeserializer().deserialize(JSON.parse(JSON.stringify(json)), types["object_type"], types);
+        let deserializedJson = new TypescriptJsonDeserializer().deserialize(JSON.parse(JSON.stringify(json)), types.object_type);
         expect(deserializedJson).to.deep.equal(json);
     });
 });
-*/
